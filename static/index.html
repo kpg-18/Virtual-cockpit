@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Virtual Cockpit</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #0c1117;
+        color: #edf2f7;
+      }
+      .dashboard {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 24px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #111827, #1f2937);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+      .gauges {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+        gap: 20px;
+      }
+      .gauge {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #93c5fd;
+      }
+      .value {
+        font-size: 2.5rem;
+        margin-top: 8px;
+        font-weight: bold;
+      }
+      .controls {
+        margin-top: 26px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      button {
+        padding: 12px 18px;
+        border: none;
+        border-radius: 10px;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      button.secondary {
+        background: #374151;
+      }
+      .status-panel {
+        margin-top: 26px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 12px;
+        padding: 18px;
+      }
+      .indicators {
+        display: flex;
+        gap: 12px;
+        font-size: 1.2rem;
+      }
+      .pill {
+        background: rgba(255,255,255,0.08);
+        border-radius: 999px;
+        padding: 8px 12px;
+      }
+      .active {
+        background: #facc15;
+        color: #111827;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <div class="topbar">
+        <h1>Virtual Cockpit</h1>
+        <div class="pill" id="wiper-status">Wiper: Off</div>
+      </div>
+
+      <div class="gauges">
+        <div class="gauge">
+          <div class="label">RPM</div>
+          <div class="value" id="rpm">0</div>
+        </div>
+        <div class="gauge">
+          <div class="label">Speed</div>
+          <div class="value" id="speed">0 km/h</div>
+        </div>
+        <div class="gauge">
+          <div class="label">Fuel</div>
+          <div class="value" id="fuel">100%</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button onclick="setSpeed(60)">Cruise 60</button>
+        <button onclick="setRpm(2800)">Engine 2800</button>
+        <button onclick="setFuel(40)">Fuel 40%</button>
+        <button class="secondary" onclick="setWiper('off')">Wiper Off</button>
+        <button class="secondary" onclick="setWiper('low')">Wiper Low</button>
+        <button class="secondary" onclick="setWiper('high')">Wiper High</button>
+        <button class="secondary" onclick="setWiper('auto')">Wiper Auto</button>
+      </div>
+
+      <div class="status-panel">
+        <h3>Indicator status</h3>
+        <div class="indicators">
+          <div class="pill" id="left-indicator">Left</div>
+          <div class="pill" id="right-indicator">Right</div>
+          <div class="pill" id="hazard-indicator">Hazard</div>
+          <div class="pill" id="brake-light">Brake</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      async function refreshStatus() {
+        const response = await fetch('/api/status');
+        const data = await response.json();
+        document.getElementById('rpm').textContent = data.rpm;
+        document.getElementById('speed').textContent = data.speed + ' km/h';
+        document.getElementById('fuel').textContent = data.fuel + '%';
+        document.getElementById('wiper-status').textContent = 'Wiper: ' + data.wiper_mode.charAt(0).toUpperCase() + data.wiper_mode.slice(1);
+
+        const left = document.getElementById('left-indicator');
+        left.classList.toggle('active', !!data.left_indicator);
+        left.textContent = data.left_indicator ? 'Left ON' : 'Left';
+
+        const right = document.getElementById('right-indicator');
+        right.classList.toggle('active', !!data.right_indicator);
+        right.textContent = data.right_indicator ? 'Right ON' : 'Right';
+
+        const hazard = document.getElementById('hazard-indicator');
+        hazard.classList.toggle('active', !!data.hazard_light);
+        hazard.textContent = data.hazard_light ? 'Hazard ON' : 'Hazard';
+
+        const brake = document.getElementById('brake-light');
+        brake.classList.toggle('active', !!data.brake_light);
+        brake.textContent = data.brake_light ? 'Brake ON' : 'Brake';
+      }
+
+      function setSpeed(value) {
+        fetch('/api/control', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ speed: value })
+        }).then(refreshStatus);
+      }
+
+      function setRpm(value) {
+        fetch('/api/control', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ rpm: value })
+        }).then(refreshStatus);
+      }
+
+      function setFuel(value) {
+        fetch('/api/control', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ fuel: value })
+        }).then(refreshStatus);
+      }
+
+      function setWiper(mode) {
+        fetch('/api/control', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ wiper_mode: mode })
+        }).then(refreshStatus);
+      }
+
+      refreshStatus();
+      setInterval(refreshStatus, 2500);
+    </script>
+  </body>
+</html>
