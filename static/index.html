@@ -5,86 +5,222 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Virtual Cockpit</title>
     <style>
+      :root {
+        --bg: #070b10;
+        --panel: #111827;
+        --panel-2: #17212d;
+        --steel: #9aa7b4;
+        --text: #ecf2ff;
+        --green: #34d399;
+        --amber: #fbbf24;
+        --red: #ef4444;
+        --blue: #60a5fa;
+        --muted: #7f8ea3;
+      }
+
+      * { box-sizing: border-box; }
+
       body {
         margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: radial-gradient(circle at center, #111827 0%, var(--bg) 60%);
+        color: var(--text);
         font-family: Arial, sans-serif;
-        background: #0c1117;
-        color: #edf2f7;
       }
+
       .dashboard {
-        max-width: 1100px;
-        margin: 40px auto;
-        padding: 24px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, #111827, #1f2937);
-        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        width: min(1200px, 92vw);
+        padding: 24px 28px 28px;
+        border-radius: 22px;
+        background: linear-gradient(160deg, var(--panel) 0%, #1d2836 100%);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 25px 70px rgba(0,0,0,0.5);
       }
+
       .topbar {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
+        margin-bottom: 18px;
       }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 2vw, 2.6rem);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .badge {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-size: 0.82rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text);
+      }
+
       .gauges {
         display: grid;
-        grid-template-columns: repeat(3, minmax(180px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(3, minmax(220px, 1fr));
+        gap: 22px;
       }
+
       .gauge {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 12px;
-        padding: 20px;
+        position: relative;
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 18px;
+        padding: 22px 20px 18px;
+        min-height: 260px;
+        overflow: hidden;
       }
-      .label {
+
+      .gauge::before {
+        content: "";
+        position: absolute;
+        inset: 18px 18px auto 18px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(from 220deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02), rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+      }
+
+      .gauge-ring {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: conic-gradient(var(--blue) 0deg, var(--blue) 270deg, rgba(255,255,255,0.08) 270deg 360deg);
+        box-shadow: inset 0 0 18px rgba(0,0,0,0.3);
+      }
+
+      .gauge-ring::before {
+        content: "";
+        position: absolute;
+        inset: 16px;
+        border-radius: 50%;
+        background: #0d1320;
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .gauge-value {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+      }
+
+      .gauge-value .main {
+        font-size: clamp(1.7rem, 1.7vw, 2.5rem);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      .gauge-value .unit {
+        display: block;
+        font-size: 0.75rem;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+
+      .gauge-label {
+        text-align: center;
         font-size: 0.8rem;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: #93c5fd;
-      }
-      .value {
-        font-size: 2.5rem;
+        letter-spacing: 0.18em;
         margin-top: 8px;
-        font-weight: bold;
+        color: var(--steel);
       }
+
       .controls {
-        margin-top: 26px;
+        margin-top: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: 11px 14px;
+        background: #2563eb;
+        color: #fff;
+        font-size: 0.96rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+      }
+
+      button:hover { transform: translateY(-1px); }
+
+      button.secondary {
+        background: #374151;
+      }
+
+      button.light-toggle {
+        background: #1f2937;
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+
+      .status-panel {
+        margin-top: 28px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 18px 20px;
+      }
+
+      .status-panel h3 {
+        margin: 0 0 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.8rem;
+        color: var(--steel);
+      }
+
+      .lights {
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
       }
-      button {
-        padding: 12px 18px;
-        border: none;
-        border-radius: 10px;
-        background: #2563eb;
-        color: white;
-        cursor: pointer;
-        font-size: 1rem;
-      }
-      button.secondary {
-        background: #374151;
-      }
-      .status-panel {
-        margin-top: 26px;
-        background: rgba(255,255,255,0.03);
-        border-radius: 12px;
-        padding: 18px;
-      }
-      .indicators {
-        display: flex;
-        gap: 12px;
-        font-size: 1.2rem;
-      }
-      .pill {
-        background: rgba(255,255,255,0.08);
+
+      .light {
+        min-width: 120px;
         border-radius: 999px;
-        padding: 8px 12px;
+        padding: 10px 14px;
+        text-align: center;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: var(--muted);
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
       }
-      .active {
-        background: #facc15;
+
+      .light.active {
         color: #111827;
-        font-weight: bold;
+        box-shadow: 0 0 18px rgba(255,255,255,0.2);
+      }
+
+      .light.left.active { background: var(--amber); }
+      .light.right.active { background: var(--amber); }
+      .light.hazard.active { background: #f59e0b; }
+      .light.brake.active { background: var(--red); }
+
+      @media (max-width: 800px) {
+        .gauges {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -92,101 +228,133 @@
     <div class="dashboard">
       <div class="topbar">
         <h1>Virtual Cockpit</h1>
-        <div class="pill" id="wiper-status">Wiper: Off</div>
+        <div class="badge" id="wiper-status">Wiper: Off</div>
       </div>
 
       <div class="gauges">
         <div class="gauge">
-          <div class="label">RPM</div>
-          <div class="value" id="rpm">0</div>
+          <div class="gauge-ring" id="rpm-ring" style="--blue: #60a5fa; background: conic-gradient(#60a5fa 0deg, #60a5fa 180deg, rgba(255,255,255,0.08) 180deg 360deg);">
+            <div class="gauge-value">
+              <span class="main" id="rpm">0</span>
+              <span class="unit">RPM</span>
+            </div>
+          </div>
+          <div class="gauge-label">Engine</div>
         </div>
+
         <div class="gauge">
-          <div class="label">Speed</div>
-          <div class="value" id="speed">0 km/h</div>
+          <div class="gauge-ring" id="speed-ring" style="--blue: #34d399; background: conic-gradient(#34d399 0deg, #34d399 120deg, rgba(255,255,255,0.08) 120deg 360deg);">
+            <div class="gauge-value">
+              <span class="main" id="speed">0</span>
+              <span class="unit">KM/H</span>
+            </div>
+          </div>
+          <div class="gauge-label">Speed</div>
         </div>
+
         <div class="gauge">
-          <div class="label">Fuel</div>
-          <div class="value" id="fuel">100%</div>
+          <div class="gauge-ring" id="fuel-ring" style="--blue: #fbbf24; background: conic-gradient(#fbbf24 0deg, #fbbf24 240deg, rgba(255,255,255,0.08) 240deg 360deg);">
+            <div class="gauge-value">
+              <span class="main" id="fuel">100</span>
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="gauge-label">Fuel</div>
         </div>
       </div>
 
       <div class="controls">
         <button onclick="setSpeed(60)">Cruise 60</button>
-        <button onclick="setRpm(2800)">Engine 2800</button>
+        <button onclick="setRpm(2800)">Idle 2800</button>
         <button onclick="setFuel(40)">Fuel 40%</button>
         <button class="secondary" onclick="setWiper('off')">Wiper Off</button>
         <button class="secondary" onclick="setWiper('low')">Wiper Low</button>
         <button class="secondary" onclick="setWiper('high')">Wiper High</button>
         <button class="secondary" onclick="setWiper('auto')">Wiper Auto</button>
+        <button class="light-toggle" onclick="toggleIndicator('left')">Toggle Left</button>
+        <button class="light-toggle" onclick="toggleIndicator('right')">Toggle Right</button>
+        <button class="light-toggle" onclick="toggleIndicator('hazard')">Toggle Hazard</button>
+        <button class="light-toggle" onclick="toggleIndicator('brake')">Toggle Brake</button>
       </div>
 
       <div class="status-panel">
-        <h3>Indicator status</h3>
-        <div class="indicators">
-          <div class="pill" id="left-indicator">Left</div>
-          <div class="pill" id="right-indicator">Right</div>
-          <div class="pill" id="hazard-indicator">Hazard</div>
-          <div class="pill" id="brake-light">Brake</div>
+        <h3>Vehicle lights</h3>
+        <div class="lights">
+          <div class="light left" id="left-indicator">Left</div>
+          <div class="light right" id="right-indicator">Right</div>
+          <div class="light hazard" id="hazard-indicator">Hazard</div>
+          <div class="light brake" id="brake-light">Brake</div>
         </div>
       </div>
     </div>
 
     <script>
+      function setGaugeRing(el, value, max, color) {
+        const percent = Math.max(0, Math.min(value / max, 1));
+        const deg = 360 * percent;
+        el.style.background = `conic-gradient(${color} 0deg ${deg}deg, rgba(255,255,255,0.08) ${deg}deg 360deg)`;
+      }
+
+      function updateMeterStyles(data) {
+        const rpm = Math.max(0, Math.min(data.rpm || 0, 9000));
+        const speed = Math.max(0, Math.min(data.speed || 0, 220));
+        const fuel = Math.max(0, Math.min(data.fuel || 0, 100));
+
+        setGaugeRing(document.getElementById('rpm-ring'), rpm, 9000, '#60a5fa');
+        setGaugeRing(document.getElementById('speed-ring'), speed, 220, '#34d399');
+        setGaugeRing(document.getElementById('fuel-ring'), fuel, 100, '#fbbf24');
+      }
+
       async function refreshStatus() {
         const response = await fetch('/api/status');
         const data = await response.json();
+
         document.getElementById('rpm').textContent = data.rpm;
-        document.getElementById('speed').textContent = data.speed + ' km/h';
-        document.getElementById('fuel').textContent = data.fuel + '%';
-        document.getElementById('wiper-status').textContent = 'Wiper: ' + data.wiper_mode.charAt(0).toUpperCase() + data.wiper_mode.slice(1);
+        document.getElementById('speed').textContent = data.speed;
+        document.getElementById('fuel').textContent = data.fuel;
+        document.getElementById('wiper-status').textContent = 'Wiper: ' + (data.wiper_mode || 'off').charAt(0).toUpperCase() + (data.wiper_mode || 'off').slice(1);
+
+        updateMeterStyles(data);
 
         const left = document.getElementById('left-indicator');
         left.classList.toggle('active', !!data.left_indicator);
-        left.textContent = data.left_indicator ? 'Left ON' : 'Left';
 
         const right = document.getElementById('right-indicator');
         right.classList.toggle('active', !!data.right_indicator);
-        right.textContent = data.right_indicator ? 'Right ON' : 'Right';
 
         const hazard = document.getElementById('hazard-indicator');
         hazard.classList.toggle('active', !!data.hazard_light);
-        hazard.textContent = data.hazard_light ? 'Hazard ON' : 'Hazard';
 
         const brake = document.getElementById('brake-light');
         brake.classList.toggle('active', !!data.brake_light);
-        brake.textContent = data.brake_light ? 'Brake ON' : 'Brake';
+      }
+
+      function postControl(payload) {
+        return fetch('/api/control', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        }).then(refreshStatus);
       }
 
       function setSpeed(value) {
-        fetch('/api/control', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ speed: value })
-        }).then(refreshStatus);
+        postControl({ speed: value });
       }
 
       function setRpm(value) {
-        fetch('/api/control', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ rpm: value })
-        }).then(refreshStatus);
+        postControl({ rpm: value });
       }
 
       function setFuel(value) {
-        fetch('/api/control', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ fuel: value })
-        }).then(refreshStatus);
+        postControl({ fuel: value });
       }
 
       function setWiper(mode) {
-        fetch('/api/control', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ wiper_mode: mode })
-        }).then(refreshStatus);
+        postControl({ wiper_mode: mode });
+      }
+
+      function toggleIndicator(kind) {
+        postControl({ indicator: kind, active: true });
       }
 
       refreshStatus();
