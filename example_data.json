@@ -1,0 +1,10 @@
+{
+  "rpm": 3200,
+  "speed": 65,
+  "fuel": 72,
+  "wiper_mode": "auto",
+  "indicator": "left",
+  "active": true,
+  "brake": false,
+  "hazard": false
+}
